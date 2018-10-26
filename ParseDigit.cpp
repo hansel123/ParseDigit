@@ -4,6 +4,20 @@
 using namespace std;
 using namespace cv;
 
+/*
+ * Check if the input is valid number
+ */ 
+bool isValidNumber (string s) {
+	if (!isdigit(s[0])) {
+		if (s[0] != '-') return false;
+	}
+	for (int i = 1; i < s.length(); i++) {
+		if (!isdigit(s[i])) return false;
+	}
+
+    return true;
+}
+
 ParseDigit::ParseDigit(const std::string imageName, const std::string targetName, bool automate) : mImageName(imageName), mTargetName(targetName), mAutomate(automate) {
 	mOrigImage = imread(mImageName);
 	if (mOrigImage.empty()) {
@@ -78,10 +92,10 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 	unordered_map<int, int> count;
 
 	Mat crop;
-	char c;
 	int digit;
 	int imgCount = 1;
 	string name;
+
 	if (mAutomate) {
 		//automatically name images without verification
 		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
@@ -94,19 +108,30 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 	}
 	else {
 		//verify each images
+		string input = "";
 		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
 			namedWindow("Digit");
+			
 			cout << "[" << imgCount << "/" << mser_bbox.size() << ']' << endl;
 			cout << "What digit is it? (Put -1 for non-digits) : ";
+			
 			crop = mOrigImage(*itr);
 			imshow("Digit", crop);
 			waitKey(100);
+			
+			getline(cin, input);
+			stringstream inputDigit(input);
+			inputDigit >> digit;
 
-			cin >> digit;
-			while (!cin || digit < -1 || digit > 10) {
+			// check for invalid input
+			while (!isValidNumber(input) || digit < -1 || digit > 9) {
 				cout << "Please enter a valid digit (0-9) : ";
-				cin >> digit;
+				getline(cin, input);
+				stringstream inputDigit(input);
+				inputDigit >> digit;
+				cout << "input is : " << input << "+" << digit << endl;
 			}
+
 			if (digit == -1) {
 				destroyWindow("Digit");
 			}
@@ -149,7 +174,7 @@ void ParseDigit::postProcessImg(unordered_map<Rect, string, CustomHash> &rectMap
 		//dilate image
 		dilate(crop, crop, m); 
 	
-		//add border to the image so that the digits will be in the center
+		//add padding to the image so that the digits will be in the center
 		copyMakeBorder(crop, crop, 4, 4, 4, 4, BORDER_CONSTANT, Scalar(0,0,0));
 		
 		imwrite(itr->second, crop); 

@@ -1,5 +1,4 @@
 #include "ParseDigit.h"
-#include "MSERDetector.h"
 #include <iostream>
 
 using namespace std;
@@ -8,7 +7,7 @@ using namespace cv;
 int main(int argc, char **argv)
 {
 	if (argc < 3) {
-		cout << "Usage: ./ParseDigit [input image] [image name] [-a]" << endl;
+		cout << "Usage: ./ParseDigit [input_image] [image_name] [-a]" << endl;
 		return -1;
 	}
 
