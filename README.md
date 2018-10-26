@@ -39,3 +39,4 @@ The detailed explanation of preprocessing the images can be found at http://open
     ./ParseDigit ../Examples/image.jpg ../Examples/Cropped/digits
     
     The output images will be stored in ../Examples/Cropped folder as digits001-1.jpg, digits001-2.jpg, ... digits009-5.jpg.
+    Make sure the destination folder is created before running the program.
