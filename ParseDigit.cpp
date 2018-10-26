@@ -100,10 +100,10 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 			cout << "What digit is it? (Put -1 for non-digits) : ";
 			crop = mOrigImage(*itr);
 			imshow("Digit", crop);
-			waitKey(30);
+			waitKey(100);
 
 			cin >> digit;
-			while (digit < -1 || digit > 10) {
+			while (!cin || digit < -1 || digit > 10) {
 				cout << "Please enter a valid digit (0-9) : ";
 				cin >> digit;
 			}
