@@ -14,9 +14,14 @@ int main(int argc, char **argv)
 
 	string inputName = argv[1];
 	string targetName = argv[2];
-
-//	resize(img, img, Size(img.cols/4, img.rows/4));
-    ParseDigit parse(inputName, targetName);
+    bool automate = false;
+    if (argc == 4) {
+        string option = argv[3];
+        if (option == "-a") {
+            automate = true;
+        }
+    }
+    ParseDigit parse(inputName, targetName, automate);
 	parse.run();
 	return 0;
 }

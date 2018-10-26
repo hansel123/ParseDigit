@@ -4,7 +4,7 @@
 using namespace std;
 using namespace cv;
 
-ParseDigit::ParseDigit(const std::string imageName, const std::string targetName) : mImageName(imageName), mTargetName(targetName) {
+ParseDigit::ParseDigit(const std::string imageName, const std::string targetName, bool automate) : mImageName(imageName), mTargetName(targetName), mAutomate(automate) {
 	mOrigImage = imread(mImageName);
 	if (mOrigImage.empty()) {
 		cout << "Invalid image: " << mImageName << endl;
@@ -63,15 +63,13 @@ vector<Rect> ParseDigit::detectMSER() {
 		}
 	}
 
-	//show image with rectangles
-	Mat temp = mOrigImage.clone();
-    for (auto& r : mser_bbox) {
-        rectangle(temp, r, CV_RGB(255, 255, 0));
-    }
+	// //show image with rectangles
+	// Mat temp = mOrigImage.clone();
+    // for (auto& r : mser_bbox) {
+    //     rectangle(temp, r, CV_RGB(255, 255, 0));
+    // }
 	cout << "done." << endl;
 	cout << "Total " << mser_bbox.size() << " digits found. " << endl << endl;
-	//imshow("mser", temp);
-	//waitKey(0);
 	return mser_bbox;
 }
 
@@ -84,40 +82,55 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 	int digit;
 	int imgCount = 1;
 	string name;
-	for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
-		namedWindow("Digit");
-		cout << "[" << imgCount << "/" << mser_bbox.size() << ']' << endl;
-		cout << "What digit is it? (Put -1 for non-digits) : ";
-		crop = mOrigImage(*itr);
-		imshow("Digit", crop);
-		waitKey(30);
-
-		cin >> digit;
-		while (digit < -1 || digit > 10) {
-				cout << "Please enter a valid digit (0-9) : ";
-				cin >> digit;
-		}
-		if (digit == -1) {
-			destroyWindow("Digit");
-		}
-		else {
+	if (mAutomate) {
+		//automatically name images without verification
+		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
 			name = mTargetName;
 			name += "00";
-			name += to_string(digit);
-			name += "-";
-			name += to_string(++count[digit]);
+			name += to_string(imgCount++);
 			name += ".jpg";
 			rectMap[*itr] = name;
-			cout << "Saved as: " << name << endl;
-			destroyWindow("Digit");
 		}
-		imgCount++;
-		cout << endl;
 	}
+	else {
+		//verify each images
+		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
+			namedWindow("Digit");
+			cout << "[" << imgCount << "/" << mser_bbox.size() << ']' << endl;
+			cout << "What digit is it? (Put -1 for non-digits) : ";
+			crop = mOrigImage(*itr);
+			imshow("Digit", crop);
+			waitKey(30);
+
+			cin >> digit;
+			while (digit < -1 || digit > 10) {
+				cout << "Please enter a valid digit (0-9) : ";
+				cin >> digit;
+			}
+			if (digit == -1) {
+				destroyWindow("Digit");
+			}
+			else {
+				name = mTargetName;
+				name += "00";
+				name += to_string(digit);
+				name += "-";
+				name += to_string(++count[digit]);
+				name += ".jpg";
+				rectMap[*itr] = name;
+				cout << "Saved as: " << name << endl;
+				destroyWindow("Digit");
+			}
+			imgCount++;
+			cout << endl;
+		}
+	}
+	
 	return rectMap;
 }
 
 void ParseDigit::postProcessImg(unordered_map<Rect, string, CustomHash> &rectMap) {
+	cout << "Post processing...";
 	Mat crop;
 	Mat m = Mat::ones(2,2,CV_8U); //kernel for dilation
 	int count = 0; //count for filename
@@ -142,6 +155,8 @@ void ParseDigit::postProcessImg(unordered_map<Rect, string, CustomHash> &rectMap
 		imwrite(itr->second, crop); 
 		count++;
 	}
+
+	cout << "done" << endl;
 }
 
 void ParseDigit::run() {

@@ -16,7 +16,7 @@ class ParseDigit {
 	
 public:
 
-	ParseDigit(const std::string imageName, const std::string targetName);
+	ParseDigit(const std::string imageName, const std::string targetName, bool automate);
 
 	~ParseDigit();
  	
@@ -50,6 +50,11 @@ private:
 	 * Stores gray image for MSER
 	 */
 	cv::Mat mGrayImage;
+
+	/**
+	 * Automate naming if true
+	 */
+	bool mAutomate;
 
 	/**
 	 * Stores name of the original image

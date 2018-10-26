@@ -7,6 +7,7 @@ class MSERDetector {
 public:
     MSERDetector(const int minSize);
     ~MSERDetector();
+    
     void detect(const cv::Mat &img, std::vector<std::vector<cv::Point>> &regions, std::vector<cv::Rect> &mser_bbox);
 
 private:
