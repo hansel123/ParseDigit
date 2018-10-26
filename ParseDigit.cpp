@@ -1,23 +1,31 @@
 #include "ParseDigit.h"
 #include <iostream>
+
 using namespace std;
 using namespace cv;
 
-ParseDigit::ParseDigit(cv::Mat &Image) : mImage(Image) {
+ParseDigit::ParseDigit(const std::string imageName, const std::string targetName) : mImageName(imageName), mTargetName(targetName) {
+	mOrigImage = imread(mImageName);
+	if (mOrigImage.empty()) {
+		cout << "Invalid image: " << mImageName << endl;
+		exit(-1);
+	}
+
+	mGrayImage = imread(mImageName, IMREAD_GRAYSCALE);
+	mDetector = make_unique<MSERDetector>(30);
 }
 
 ParseDigit::~ParseDigit() {
 }
 
-vector<Rect> ParseDigit::runMSER(Mat &gray) {
+vector<Rect> ParseDigit::detectMSER() {
 	vector<vector<cv::Point> > regions;
-	Ptr<MSER> ms = MSER::create(5, 30);
 	vector<cv::Rect> mser_bbox;
 
 	cout << "Parsing...";
 
 	//detect Maximally Stable Extremal Region on the given image
-	ms->detectRegions(gray, regions, mser_bbox);
+	mDetector->detect(mGrayImage, regions, mser_bbox);
 
     //check for overlapping rectangles and merge them
     for (auto i = mser_bbox.begin(); i != mser_bbox.end(); i++) {
@@ -34,7 +42,7 @@ vector<Rect> ParseDigit::runMSER(Mat &gray) {
 	}
 
 	//check for rectangles that are close and merge them 
-	int minLength = min(gray.cols, gray.rows);
+	int minLength = min(mOrigImage.cols, mOrigImage.rows);
 	for (auto i = mser_bbox.begin(); i!= mser_bbox.end(); i++) {
 		for (auto j = i+1; j != mser_bbox.end();) {
 			Rect rect1 = *i;
@@ -54,100 +62,90 @@ vector<Rect> ParseDigit::runMSER(Mat &gray) {
 			}
 		}
 	}
+
 	//show image with rectangles
-	Mat temp = gray.clone();
-    for (int i= 0; i<mser_bbox.size(); i++ ) {
-        rectangle(temp, mser_bbox[i], CV_RGB(255, 255, 0));
+	Mat temp = mOrigImage.clone();
+    for (auto& r : mser_bbox) {
+        rectangle(temp, r, CV_RGB(255, 255, 0));
     }
 	cout << "done." << endl;
-	cout << "Total " << mser_bbox.size() << " digits found. " << endl;
-	imshow("mser", temp);
-	waitKey(0);
+	cout << "Total " << mser_bbox.size() << " digits found. " << endl << endl;
+	//imshow("mser", temp);
+	//waitKey(0);
 	return mser_bbox;
 }
 
-// bool operator==(const Rect& rect1, const Rect& rect2)
-// {
-//     return (rect1.x == rect2.x) && (rect1.y == rect2.y) && (rect1.width == rect2.width) && (rect1.height == rect2.height)
-// }
+unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_bbox) {
+	unordered_map<cv::Rect, std::string, CustomHash> rectMap;
+	unordered_map<int, int> count;
 
-// unordered_map<cv::Rect, int> ParseDigit::cropImg(vector<Rect> &vec, Mat &img) {
-// 	unordered_map<Rect, int> map;
-// 	Mat crop;
-// 	char c;
-// 	int digit;
-// 	for (auto itr= vec.begin(); itr!=vec.end();) {
-// 		//crop the image
-// 		crop = img(*itr);
-// 		cout << "Is this image a digit? (y/n) : ";
-// 		imshow("Crop", crop);
-// 		cin >> c;
-// 		switch (c) {
-// 		case 'Y':
-// 		case 'y':
-// 			cout << "Which digit is it? (0-9) : ";
-// 			cin >> digit;
-// 			while (digit < 0 || digit > 10) {
-// 				cout << "Please enter a valid digit (0-9) : ";
-// 				cin >> digit;
-// 			}
-// 			map[*itr] = digit;
-// 			itr++;
-// 			break;
-// 		case 'N':
-// 		case 'n':
-// 			itr++;
-// 			break;
-// 		default:
-// 			cout << "Please indicate correct input (y/n) : ";
-// 			cin >> c;
-// 			break;
-// 	}
-// 	return map;
-// }
+	Mat crop;
+	char c;
+	int digit;
+	int imgCount = 1;
+	string name;
+	for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
+		namedWindow("Digit");
+		cout << "[" << imgCount << "/" << mser_bbox.size() << ']' << endl;
+		cout << "What digit is it? (Put -1 for non-digits) : ";
+		crop = mOrigImage(*itr);
+		imshow("Digit", crop);
+		waitKey(30);
 
-void ParseDigit::postProcessImg(vector<Rect> &map, Mat &img) {
+		cin >> digit;
+		while (digit < -1 || digit > 10) {
+				cout << "Please enter a valid digit (0-9) : ";
+				cin >> digit;
+		}
+		if (digit == -1) {
+			destroyWindow("Digit");
+		}
+		else {
+			name = mTargetName;
+			name += "00";
+			name += to_string(digit);
+			name += "-";
+			name += to_string(++count[digit]);
+			name += ".jpg";
+			rectMap[*itr] = name;
+			cout << "Saved as: " << name << endl;
+			destroyWindow("Digit");
+		}
+		imgCount++;
+		cout << endl;
+	}
+	return rectMap;
+}
+
+void ParseDigit::postProcessImg(unordered_map<Rect, string, CustomHash> &rectMap) {
 	Mat crop;
 	Mat m = Mat::ones(2,2,CV_8U); //kernel for dilation
 	int count = 0; //count for filename
-	for (auto itr = map.begin(); itr!=map.end(); itr++) {
+	
+	for (auto itr = rectMap.begin(); itr != rectMap.end(); itr++) {
+	
 		//crop the image
-		crop = img(*itr);
-		
+		crop = mGrayImage(itr->first);
+	
 		//invert the color and resize it to 20x20
 		resize(255-crop, crop, Size(20, 20));
-		
+	
 		//convert to black/white image
 		threshold(crop, crop, 0, 255, THRESH_OTSU);
-		
+	
 		//dilate image
 		dilate(crop, crop, m); 
-		
+	
 		//add border to the image so that the digits will be in the center
 		copyMakeBorder(crop, crop, 4, 4, 4, 4, BORDER_CONSTANT, Scalar(0,0,0));
 		
-		imwrite(to_string(count).append(".jpg"), crop); 
+		imwrite(itr->second, crop); 
 		count++;
 	}
 }
 
-int main(int argc, char **argv)
-{
-	if (argc != 2) {
-		cout << "Usage: ./ParseDigit [input image]" << endl;
-		return -1;
-	}
-
-	Mat img = imread(argv[1], IMREAD_GRAYSCALE);
-
-	if (img.empty()) {
-		cout << "Invalid image: " << argv[1] << endl;
-		return -1;
-	}
-	resize(img, img, Size(img.cols/4, img.rows/4));
-    ParseDigit target(img);
-	vector<Rect> rect = target.runMSER(img);
-	//unordered_map<Rect, int> map = target.cropImg(rect, img);
-	target.postProcessImg(rect, img);
-	return 0;
+void ParseDigit::run() {
+	vector<Rect> mser_bbox = detectMSER();
+	unordered_map<Rect, string, CustomHash> rectMap = cropImg(mser_bbox);
+	postProcessImg(rectMap);
 }
