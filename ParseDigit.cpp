@@ -142,7 +142,7 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 			else {
 				name = mDirName;
 				name += "/";
-				name = mTargetName;
+				name += mTargetName;
 				name += "00";
 				name += to_string(digit);
 				name += "-";
