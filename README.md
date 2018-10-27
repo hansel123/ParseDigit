@@ -36,9 +36,19 @@ The detailed explanation of preprocessing the images can be found at http://open
      4. [-a]
          If -a option is set, it will skip the digit verification process and automatically name the images 
          as mentioned above. Otherwise, it will show each detected digits and go through verification process.
-       
+        
+### Guideline for Image Preparation
+    When preparing your own image for the input, make sure that 
+     
+     1. The paper does not contain any lines. The plain A4 paper is recommended.
+     2. Write the digits big and clear enough so that it can be recognized.
+     3. When taking the photo of it, make sure there are no other objects other than the paper.
+     
+    See the Example/image.jpg & Example/image2.jpg for the reference.
+     
 ### Example
     ./ParseDigit ../Examples/image.jpg ../Examples/Cropped/ digits
     
     The output images will be stored in ../Examples/Cropped folder as digits001-1.jpg, digits001-2.jpg, ... digits009-5.jpg.
     Make sure the destination folder is created before running the program.
+   
