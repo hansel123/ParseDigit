@@ -23,20 +23,22 @@ The detailed explanation of preprocessing the images can be found at http://open
      make
 
 ### Usage
-     Usage: ./ParseDigit [input_image] [image_name] [-a]
+     Usage: ./ParseDigit [input_image] [directory_name] [image_name] [-a]
      
      1. [input_image]
          The name of the input image (including the directory to the image) to run the detection and crop.
-     2. [image_name]
+     2. [directory_name]
+         The name of the path where the images will be saved.
+     3. [image_name]
          The name of the ouput images (including the directory to the image).
          The name of the images will be "[image_name]00[digit]-[digit count].jpg".
          If -a option is set, the names will be "[image_name]001.jpg", "[image_name]002.jpg" ... and so on.
-     3. [-a]
+     4. [-a]
          If -a option is set, it will skip the digit verification process and automatically name the images 
          as mentioned above. Otherwise, it will show each detected digits and go through verification process.
        
 ### Example
-    ./ParseDigit ../Examples/image.jpg ../Examples/Cropped/digits
+    ./ParseDigit ../Examples/image.jpg ../Examples/Cropped/ digits
     
     The output images will be stored in ../Examples/Cropped folder as digits001-1.jpg, digits001-2.jpg, ... digits009-5.jpg.
     Make sure the destination folder is created before running the program.
