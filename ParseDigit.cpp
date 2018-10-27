@@ -102,6 +102,7 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 		//automatically name images without verification
 		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
 			name = mDirName;
+			name += "/";
 			name += mTargetName;
 			name += "00";
 			name += to_string(imgCount++);
@@ -139,6 +140,8 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 				destroyWindow("Digit");
 			}
 			else {
+				name = mDirName;
+				name += "/";
 				name = mTargetName;
 				name += "00";
 				name += to_string(digit);
