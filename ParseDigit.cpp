@@ -148,6 +148,7 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 				name += "-";
 				name += to_string(++count[digit]);
 				name += ".jpg";
+				cout << " the name is " << name << endl;
 				rectMap[*itr] = name;
 				cout << "Saved as: " << name << endl;
 				destroyWindow("Digit");
