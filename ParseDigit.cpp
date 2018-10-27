@@ -18,7 +18,9 @@ bool isValidNumber (string s) {
     return true;
 }
 
-ParseDigit::ParseDigit(const std::string imageName, const std::string targetName, bool automate) : mImageName(imageName), mTargetName(targetName), mAutomate(automate) {
+ParseDigit::ParseDigit(const std::string imageName, const std::string dirName, const std::string targetName, bool automate)
+ : mImageName(imageName), mDirName(dirName), mTargetName(targetName), mAutomate(automate) {
+
 	mOrigImage = imread(mImageName);
 	if (mOrigImage.empty()) {
 		cout << "Invalid image: " << mImageName << endl;
@@ -99,7 +101,8 @@ unordered_map<Rect, string, CustomHash> ParseDigit::cropImg(vector<Rect> &mser_b
 	if (mAutomate) {
 		//automatically name images without verification
 		for (auto itr = mser_bbox.begin(); itr != mser_bbox.end(); itr++) {
-			name = mTargetName;
+			name = mDirName;
+			name += mTargetName;
 			name += "00";
 			name += to_string(imgCount++);
 			name += ".jpg";

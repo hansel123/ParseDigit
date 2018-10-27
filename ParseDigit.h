@@ -16,7 +16,7 @@ class ParseDigit {
 	
 public:
 
-	ParseDigit(const std::string imageName, const std::string targetName, bool automate);
+	ParseDigit(const std::string imageName, const std::string dirName, const std::string targetName, bool automate);
 
 	~ParseDigit();
  	
@@ -61,6 +61,10 @@ private:
 	 */
 	const std::string mImageName;
 
+	/**
+	 * Stores target path
+	 */
+	const std::string mDirName;
 	/**
 	 * Stores name of the target image
 	 */
