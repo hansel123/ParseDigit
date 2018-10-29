@@ -49,7 +49,7 @@ vector<Rect> ParseDigit::detectMSER() {
                 if ((*i & *j).area() > 0) {
                     *i = *i | *j;
                     mser_bbox.erase(j);
-		    j = i+1;
+		      j = i+1;
                 }
                 else {
                     j++;
