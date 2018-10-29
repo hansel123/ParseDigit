@@ -8,7 +8,6 @@ The program uses opencv [MSER function](https://docs.opencv.org/3.1.0/d3/d28/cla
 After detecting and cropping the images, it preprocesses the images so that it can be used for MNIST dataset.
 The detailed explanation of preprocessing the images can be found at http://opensourc.es/blog/tensorflow-mnist
 
-
 ### Pre-requisites
 ##### 1. OpenCV 3.1 [download](https://opencv.org/opencv-3-1.html) or higher
 ##### 2. cmake git 
